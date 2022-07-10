@@ -11,8 +11,8 @@ from evaluation_plot import plotInvSenResults, plotInvSenResultsAnimate, plotInv
 from rrtv1 import RRTV1
 
 # version 2 RRT
-import sys
-sys.path.append('./rrtAlgorithms/src/')
+# import sys
+# sys.path.append('./rrtAlgorithms/src/')
 from rrt.rrt import RRT
 from search_space.search_space import SearchSpace
 from utilities.plotting import Plot
@@ -239,7 +239,7 @@ class EvaluationInvSenNonGr(Evaluation):
             print(dest, xp_val)
             t_val = d_time_step
             vp_norm = norm(vp_val, 2)
-            vp_val_normalized = [val / vp_norm for val in vp_val]  # Normalized
+            # vp_val_normalized = [val / vp_norm for val in vp_val]  # Normalized
             dist = vp_norm
             print("Starting distance: " + str(dist))
             original_distance = dist
@@ -277,8 +277,8 @@ class EvaluationInvSenNonGr(Evaluation):
                 v_val = predicted_v_scaled
                 vp_val = dest - xp_val
 
-                vp_norm = norm(vp_val, 2)
-                vp_val_normalized = [val / vp_norm for val in vp_val]  # Normalized
+                # vp_norm = norm(vp_val, 2)
+                # vp_val_normalized = [val / vp_norm for val in vp_val]  # Normalized
 
                 dist = norm(vp_val, 2)
                 t_val = d_time_step
@@ -323,7 +323,6 @@ class EvaluationInvSenNonGr(Evaluation):
             else:
                 plotInvSenResults(trajectories, rrt_dests, d_time_step, dimensions, best_trajectory)
                 # plotInvSenResultsAnimate(trajectories, rrt_dests, d_time_step, v_vals, vp_vals)
-
 
     def partition_init_set(self, partitions=5):
         x_index = 0
@@ -376,6 +375,7 @@ class EvaluationInvSenNonGr(Evaluation):
 
         # dataObject.setLowerBound([0.5, 0.5])
         # dataObject.setUpperBound([1.5, 1.5])
+
     def coverage(self, d_time_steps, samples=0, partitions=5):
 
         lowerBounds = None

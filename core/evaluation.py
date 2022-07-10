@@ -112,7 +112,7 @@ class Evaluation(object):
             x_v_t_pair = x_v_t_pair + list(input[2])
             x_v_t_pair = x_v_t_pair + [input[4]]
             x_v_t_pair = np.asarray([x_v_t_pair], dtype=np.float64)
-            predicted_vp = model.predict(x_v_t_pair)
+            predicted_vp = model.predict(x_v_t_pair, verbose=0)
             predicted_vp = predicted_vp.flatten()
             output = predicted_vp
             # print(predicted_vp)
@@ -123,7 +123,7 @@ class Evaluation(object):
             xp_vp_t_pair = xp_vp_t_pair + list(input[3])
             xp_vp_t_pair = xp_vp_t_pair + [input[4]]
             xp_vp_t_pair = np.asarray([xp_vp_t_pair], dtype=np.float64)
-            predicted_v = model.predict(xp_vp_t_pair)
+            predicted_v = model.predict(xp_vp_t_pair, verbose=0)
             predicted_v = predicted_v.flatten()
             output = predicted_v
             # print(predicted_v)

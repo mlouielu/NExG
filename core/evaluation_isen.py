@@ -16,10 +16,10 @@ from rrtv1 import RRTV1
 
 # version 2 RRT
 import sys
-sys.path.append('./rrtAlgorithms/src/')
-from rrt.rrt import RRT
-from search_space.search_space import SearchSpace
-from utilities.plotting import Plot
+# sys.path.append('./rrtAlgorithms/src/')
+# from rrt.rrt import RRT
+# from search_space.search_space import SearchSpace
+# from utilities.plotting import Plot
 
 
 def random_points_in_polygon(polygon, k):
@@ -348,24 +348,14 @@ class EvaluationInvSen(Evaluation):
                 # prev_pred_dist = None
 
                 while step < correction_steps:
-                    if self.norm_status is False:
-                        data_point = self.data_object.createDataPoint(x_val, xp_val, v_val, vp_val, t_val)
-                    else:
-                        data_point = self.data_object.createDataPoint(x_val, xp_val, v_val, vp_val_normalized, t_val)
-
+                    data_point = self.data_object.createDataPoint(x_val, xp_val, v_val, vp_val_normalized, t_val)
                     predicted_v = self.evalModel(input=data_point, eval_var='v', model=model_v)
 
                     if true_inv_sen is not None:
-                        if self.norm_status is False:
-                            predicted_v_scaled = [val * scaling_factor for val in predicted_v]
-                        else:
-                            true_inv_sen_norm = norm(true_inv_sen, 2)
-                            predicted_v_scaled = [val * scaling_factor * true_inv_sen_norm for val in predicted_v]
+                        true_inv_sen_norm = norm(true_inv_sen, 2)
+                        predicted_v_scaled = [val * scaling_factor * true_inv_sen_norm for val in predicted_v]
                     else:
-                        if self.norm_status is False:
-                            predicted_v_scaled = [val * scaling_factor for val in predicted_v]
-                        else:
-                            predicted_v_scaled = [val * scaling_factor * vp_norm for val in predicted_v]
+                        predicted_v_scaled = [val * scaling_factor * vp_norm for val in predicted_v]
 
                     new_init_state = [self.check_for_bounds(x_val + predicted_v_scaled)]
 
@@ -376,7 +366,7 @@ class EvaluationInvSen(Evaluation):
 
                     xp_val = xp_val + vp_val_scaled
                     v_val = predicted_v_scaled
-                    vp_val = dest - xp_val
+                    # vp_val = dest - xp_val
                     x_vals.append(x_val)
                     xp_vals.append(xp_val)
                     t_val = d_time_step
@@ -424,7 +414,7 @@ class EvaluationInvSen(Evaluation):
                         min_dist = new_dist
                         dest = new_dest
                         xp_val = new_traj[d_time_step]
-                        vp_val = dest - xp_val
+                        vp_val = np.array(dest) - xp_val
                         vp_norm = norm(vp_val, 2)
                         dist = vp_norm
 
@@ -455,13 +445,13 @@ class EvaluationInvSen(Evaluation):
 
             # self.plotInvSenResultsRRTv2(trajectories, dest, d_time_step, dimensions, rand_area, path_idx, dynamics)
 
-            if self.staliro_run:
-                plotInvSenStaliroResults(trajectories, d_time_step, best_trajectory, self.usafeupperBoundArray,
-                                         self.usafelowerBoundArray, self.data_object)
-                # plotInvSenResultsAnimate(trajectories, None, d_time_step, v_vals, vp_vals)
-            else:
-                plotInvSenResults(trajectories, rrt_dests, d_time_step, dimensions, best_trajectory)
-                # plotInvSenResultsAnimate(trajectories, rrt_dests, d_time_step, v_vals, vp_vals)
+            # if self.staliro_run and len(trajectories) > 1:
+            #     plotInvSenStaliroResults(trajectories, d_time_step, best_trajectory, self.usafeupperBoundArray,
+            #                              self.usafelowerBoundArray, self.data_object)
+            #     # plotInvSenResultsAnimate(trajectories, None, d_time_step, v_vals, vp_vals)
+            # elif not self.staliro_run:
+            #     plotInvSenResults(trajectories, rrt_dests, d_time_step, dimensions, best_trajectory)
+            #     # plotInvSenResultsAnimate(trajectories, rrt_dests, d_time_step, v_vals, vp_vals)
 
     def get_vp_direction_axes_aligned(self, dimensions, scaling_factor, dest, xp_val):
         i_matrix = np.eye(dimensions)
