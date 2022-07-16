@@ -76,7 +76,7 @@ class configuration(object):
         self.grad_run = grad_run
 
     def load_i_states_4m_file(self):
-        r_states_fname = nxg_path + '/eval-emsoft/' + self.dynamics + '_r_states.txt'
+        r_states_fname = nxg_path + '/eval-emsoft/training-samples/' + self.dynamics + '_r_states.txt'
         r_states_f = open(r_states_fname, 'r')
         states = json.loads(r_states_f.read())
         r_states = []
@@ -136,65 +136,65 @@ class configuration(object):
         dnn_transform_obj = None
         if self.dynamics is 'MountainCarDisc':
             dnn_cntrl_fname = control_dir + 'verisig/mountain_car/' + 'sig16x16.yml'
-        elif self.dynamics is 'QuadrotorDisc':
+        if self.dynamics is 'QuadrotorDisc':
             dnn_cntrl_fname = control_dir + 'verisig/quadrotor/' + 'tanh20x20.yml'
-        elif self.dynamics is 'InvPendulumDisc':
+        if self.dynamics is 'InvPendulumDisc':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Inverted_pendulum/' + 'IPController.yml'
-        elif self.dynamics is 'OtherBench1Disc':
+        if self.dynamics is 'OtherBench1Disc':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Benchmark1/' + 'controller.yml'
-        elif self.dynamics is 'ABSDisc':
+        if self.dynamics is 'ABSDisc':
             dnn_cntrl_fname = control_dir + 'NNV/ABS/' + 'controller.yml'
             dnn_tf_fname = control_dir + 'NNV/ABS/' + 'transform.yml'
             dnn_transform_obj = DnnController(dnn_tf_fname, 2)
-        elif self.dynamics is 'MountainCarCont':  # don't have a controller file for this
+        if self.dynamics is 'MountainCarCont':  # don't have a controller file for this
             dnn_cntrl_fname = control_dir + 'verisig/mountain_car/' + 'sig16x16.yml'
-        elif self.dynamics is 'OtherBenchC1':
+        if self.dynamics is 'OtherBenchC1':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Benchmark1/' + 'controller.yml'
-        elif self.dynamics is 'OtherBenchC2':
+        if self.dynamics is 'OtherBenchC2':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Benchmark2/' + 'controller.yml'
-        elif self.dynamics is 'OtherBenchC3':
+        if self.dynamics is 'OtherBenchC3':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Benchmark3/' + 'controller.yml'
-        elif self.dynamics is 'OtherBenchC4':
+        if self.dynamics is 'OtherBenchC4':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Benchmark4/' + 'controller.yml'
-        elif self.dynamics is 'OtherBenchC5':
+        if self.dynamics is 'OtherBenchC5':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Benchmark5/' + 'controller.yml'
-        elif self.dynamics is 'OtherBenchC6':
+        if self.dynamics is 'OtherBenchC6':
             dnn_cntrl_fname = control_dir + 'ARCH-2019//Benchmark6/' + 'controller.yml'
-        elif self.dynamics is 'OtherBenchC7':
+        if self.dynamics is 'OtherBenchC7':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Benchmark7/' + 'controller.yml'
-        elif self.dynamics is 'OtherBenchC8':
+        if self.dynamics is 'OtherBenchC8':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Benchmark8/' + 'controller.yml'
-        elif self.dynamics is 'ACCNonLinear3L':
+        if self.dynamics is 'ACCNonLinear3L':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/ACC/' + 'acc_controller_3_20.yml'
-        elif self.dynamics is 'ACCNonLinear5L':
+        if self.dynamics is 'ACCNonLinear5L':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/ACC/' + 'acc_controller_5_20.yml'
-        elif self.dynamics is 'ACCNonLinear7L':
+        if self.dynamics is 'ACCNonLinear7L':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/ACC/' + 'acc_controller_7_20.yml'
-        elif self.dynamics is 'ACCNonLinear10L':
+        if self.dynamics is 'ACCNonLinear10L':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/ACC/' + 'acc_controller_10_20.yml'
-        elif self.dynamics is 'OtherBenchC9':
+        if self.dynamics is 'OtherBenchC9':
             dnn_cntrl_fname = control_dir + 'ARCH-2020/Benchmark9-TORA/' + 'controllerTora_nnv.yml'
-        elif self.dynamics is 'OtherBenchC9Tanh':
+        if self.dynamics is 'OtherBenchC9Tanh':
             dnn_cntrl_fname = control_dir + 'ARCH-2020/Benchmark9-TORA-Tanh/' + 'controllerTora_nnv_tanh.yml'
-        elif self.dynamics is 'OtherBenchC9Sigmoid':
+        if self.dynamics is 'OtherBenchC9Sigmoid':
             dnn_cntrl_fname = control_dir + 'ARCH-2020/Benchmark9-TORA-Sigmoid/' + 'controllerTora_nnv_sigmoid.yml'
-        elif self.dynamics is 'SinglePendulum':
+        if self.dynamics is 'SinglePendulum':
             dnn_cntrl_fname = control_dir + 'ARCH-2020/SinglePendulum/' + 'controller_single_pendulum.yml'
-        elif self.dynamics is 'DoublePendulumLess':
+        if self.dynamics is 'DoublePendulumLess':
             dnn_cntrl_fname = control_dir + 'ARCH-2020/DoublePendulum/' + 'controller_double_pendulum_less.yml'
-        elif self.dynamics is 'DoublePendulumMore':
+        if self.dynamics is 'DoublePendulumMore':
             dnn_cntrl_fname = control_dir + 'ARCH-2020/DoublePendulum/' + 'controller_double_pendulum_more.yml'
-        elif self.dynamics is 'OtherBenchC10':
+        if self.dynamics is 'OtherBenchC10':
             dnn_cntrl_fname = control_dir + 'ARCH-2020/Benchmark10-Unicycle/' + 'controller10_unicycle.yml'
-        elif self.dynamics is 'InvPendulumC':
+        if self.dynamics is 'InvPendulumC':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Inverted-pendulum/' + 'IPController.yml'
-        elif self.dynamics is 'Airplane':
+        if self.dynamics is 'Airplane':
             dnn_cntrl_fname = control_dir + 'ARCH-2020/Airplane/' + 'controller_airplane.yml'
-        elif self.dynamics is 'CartPole':
+        if self.dynamics is 'CartPole':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Cart-pole/' + 'Cartpole_controller.yml'
-        elif self.dynamics is 'CartPoleTanh':
+        if self.dynamics is 'CartPoleTanh':
             dnn_cntrl_fname = control_dir + 'ARCH-2019/Cart-pole/' + 'Cartpole_controller_tanh.yml'
-        elif self.dynamics is 'VertCAS':
+        if self.dynamics is 'VertCAS':
             dnn_cntrl_fname = control_dir + 'ARCH-2020/VCAS/' + 'VertCAS_1.yml'
             dnn_controller_obj = DnnController(dnn_cntrl_fname, self.dimensions)
             plant = Plant('VertCAS', dnn_controller_obj, None, self.steps)
@@ -244,7 +244,7 @@ class configuration(object):
             r_states = generateRandomStates(self.samples, self.lowerBoundArray, self.upperBoundArray)
 
         if dump_i_states is True:
-            r_states_fname = nxg_path + '/eval-emsoft/' + self.dynamics + '_r_states.txt'
+            r_states_fname = nxg_path + '/eval-emsoft/training-samples/' + self.dynamics + '_r_states.txt'
             if path.exists(r_states_fname):
                 os.remove(r_states_fname)
             r_states_f = open(r_states_fname, 'w')
@@ -279,7 +279,8 @@ class configuration(object):
                     if plant is not None and self.discrete_dyn is True:
                         neighbor_trajectory = plant.getSimulations(states=[neighbor_state], do_not_parse=True)[0]
                     elif plant is not None and (self.dynamics == 'GCAS' or self.dynamics == 'GCASInv'):
-                        neighbor_trajectory = plant.get_simulations(states=[neighbor_state], stepSize=self.stepSize, steps=self.steps)[0]
+                        neighbor_trajectory = plant.get_simulations(states=[neighbor_state], stepSize=self.stepSize,
+                                                                    steps=self.steps)[0]
                     else:
                         # Added below r_time statement to take care of some warning - haven't tested it though.
                         # It has been working without this. If it causes an issue, comment it.
