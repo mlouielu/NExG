@@ -32,7 +32,8 @@ avg_v_val = 1.0
 
 class DataConfiguration(configuration):
 
-    def __init__(self, stepSize=0.01, dynamics='None', gradient_run=False, dimensions=2, sensitivity='Inv', disc=False, normalization=False):
+    def __init__(self, stepSize=0.01, dynamics='None', gradient_run=False, dimensions=2, sensitivity='Inv', disc=False,
+                 normalization=False, validation=False):
 
         configuration.__init__(self, stepSize=stepSize, dynamics=dynamics, dimensions=dimensions,
                                gradient_run=gradient_run, disc=disc)
@@ -41,6 +42,7 @@ class DataConfiguration(configuration):
         self.eval_dir = nxg_path + 'eval-emsoft'
         self.sensitivity = sensitivity
         self.normalization = normalization
+        self.validation = validation
 
     def getNormalizationStatus(self):
         return self.normalization
@@ -51,7 +53,7 @@ class DataConfiguration(configuration):
     def dumpDataConfiguration(self):
         d_obj_f_name = self.eval_dir + '/dconfigs_inv/d_object_' + self.dynamics
         print(d_obj_f_name)
-        if self.sensitivity is 'Fwd':
+        if self.sensitivity == 'Fwd':
             d_obj_f_name = self.eval_dir + '/dconfigs_fwd/d_object_' + self.dynamics
 
         d_obj_f_name += '.txt'
@@ -97,8 +99,10 @@ class DataConfiguration(configuration):
                 x_idx = 0
                 v_val = neighbor_traj[x_idx] - ref_traj[x_idx]
                 v_norm = norm(v_val, 2)
-                # We normalize them later during trainTestNN method since we save actual_inv_sen values
-                # v_val = [val / v_norm for val in v_val]
+                # We normalize them later during trainTestNN method since we save actual_inv_sen values for validation
+                if self.validation is False:
+                    print( " v _ val ")
+                    v_val = [val / v_norm for val in v_val]
                 x_val = ref_traj[x_idx]
                 x_dv_val = neighbor_traj[x_idx]
                 v_dv_val = ref_traj[x_idx] - neighbor_traj[x_idx]
@@ -110,8 +114,7 @@ class DataConfiguration(configuration):
                         vp_val = neighbor_traj[t_val] - ref_traj[t_val]
                         vp_norm = norm(vp_val, 2)
                         vp_norms.append(vp_norm)
-                        if self.normalization is True:
-                            vp_val = [val / v_norm for val in vp_val]
+                        vp_val = [val / v_norm for val in vp_val]
                         xpList.append(ref_traj[t_val])
                         xList.append(x_val)
                         vList.append(v_val)
@@ -121,8 +124,7 @@ class DataConfiguration(configuration):
 
                         xp_dv_val = neighbor_traj[t_val]
                         vp_dv_val = ref_traj[t_val] - neighbor_traj[t_val]
-                        if self.normalization is True:
-                            vp_dv_val = [val / v_norm for val in vp_dv_val]
+                        vp_dv_val = [val / v_norm for val in vp_dv_val]
                         xpList.append(xp_dv_val)
                         xList.append(x_dv_val)
                         vpList.append(vp_dv_val)
@@ -183,7 +185,7 @@ class DataConfiguration(configuration):
             traj_2 = self.trajectories[t_pair[1]]
             x_idx = 0
             v_val = traj_2[x_idx] - traj_1[x_idx]
-            v_norm = norm(v_val, 2)
+            # v_norm = norm(v_val, 2)
             x_val = traj_1[x_idx]
             x_dv_val = traj_2[x_idx]
             v_dv_val = traj_1[x_idx] - traj_2[x_idx]
@@ -196,8 +198,6 @@ class DataConfiguration(configuration):
                     vp_val = traj_2[t_val] - traj_1[t_val]
                     vp_norm = norm(vp_val, 2)
                     vp_norms.append(vp_norm)
-                    if self.normalization is True:
-                        vp_val = [val / v_norm for val in vp_val]
                     vpList.append(vp_val)
                     tList.append(t_val * self.stepSize)
 
@@ -205,8 +205,6 @@ class DataConfiguration(configuration):
                     vList.append(v_dv_val)
                     xpList.append(traj_2[t_val])
                     vp_dv_val = traj_1[t_val] - traj_2[t_val]
-                    if self.normalization is True:
-                        vp_dv_val = [val / v_norm for val in vp_dv_val]
                     vpList.append(vp_dv_val)
                     tList.append(t_val * self.stepSize)
 
@@ -283,38 +281,39 @@ class CreateTrainNN(NNConfiguration):
 
         sensitivity = data_object.getSensitivity()
         for var in out_vars:
-            if var is 'v' and sensitivity is 'fwd':
+            if var == 'v' and sensitivity == 'fwd':
                 print("Can not output v for forward sensitivity run. Either change sensitivity type or output var.")
                 return
-            elif var is 'vp' and sensitivity is 'inv':
+            elif var == 'vp' and sensitivity == 'inv':
                 print("Can not output vp for inverse sensitivity run. Either change sensitivity type or output var.")
                 return
 
         self.eval_dir = data_object.getEvalDir()
         print(self.eval_dir)
         print("Gradient: " + str(data_object.getGradientRun()))
+        print("Normalization: " + str(data_object.getNormalizationStatus()))
         inp_indices = []
         out_indices = []
         data = data_object.getData()
         self.dimensions = data_object.getDimensions()
 
         for var in inp_vars:
-            if var is 'x':
+            if var == 'x':
                 inp_indices.append(0)
-            if var is 'xp':
+            if var == 'xp':
                 inp_indices.append(1)
-            if var is 'v':
+            if var == 'v':
                 inp_indices.append(2)
-            if var is 'vp':
+            if var == 'vp':
                 inp_indices.append(3)
-            if var is 't':
+            if var == 't':
                 inp_indices.append(4)
 
         for var in out_vars:
-            if var is 'v':
+            if var == 'v':
                 out_indices.append(2)
                 self.predict_var = var
-            elif var is 'vp':
+            elif var == 'vp':
                 out_indices.append(3)
                 self.predict_var = var
 
@@ -328,7 +327,7 @@ class CreateTrainNN(NNConfiguration):
             input_pair = []
             output_pair = []
             for inp in inp_indices:
-                if inp is not 4:
+                if inp != 4:
                     input_pair = input_pair + list(data[inp][idx])
                 else:
                     input_pair = input_pair + [data[inp][idx]]
@@ -340,7 +339,7 @@ class CreateTrainNN(NNConfiguration):
         self.setInput(np.asarray(input, dtype=np.float64))
         self.setOutput(np.asarray(output, dtype=np.float64))
 
-    def trainTestNN(self, optim='SGD', loss_fn='mae', act_fn='ReLU', layers=4, neurons=400):
+    def trainTestNN(self, optim='SGD', loss_fn='mae', act_fn='ReLU', layers=4, neurons=400, validation=False):
 
         print(self.input.shape)
         x_train, x_test, y_train, y_test = train_test_split(self.input, self.output, test_size=self.test_size,
@@ -352,8 +351,8 @@ class CreateTrainNN(NNConfiguration):
 
         actual_inv_sens = []
 
-        if self.normalization is True:
-            print("normalized")
+        if self.normalization is True and validation is True:
+            print(" validation and normalized ")
             for idx in range(len(y_train)):
                 y_train[idx] = [val / norm(y_train[idx], 2) for val in y_train[idx]]
 
@@ -376,17 +375,17 @@ class CreateTrainNN(NNConfiguration):
 
         #   get_custom_objects().update({'custom_activation': Activation(swish)})
 
-        if act_fn is 'Tanh':
+        if act_fn == 'Tanh':
             act = 'tanh'
-        elif act_fn is 'Sigmoid':
+        elif act_fn == 'Sigmoid':
             act = 'sigmoid'
-        elif act_fn is 'Exponential':
+        elif act_fn == 'Exponential':
             act = 'exponential'
-        elif act_fn is 'Linear':
+        elif act_fn == 'Linear':
             act = 'linear'
-        elif act_fn is 'SoftMax':
+        elif act_fn == 'SoftMax':
             act = 'softmax'
-        elif act_fn is 'Swish':
+        elif act_fn == 'Swish':
             act = swish
         else:
             act = 'relu'
@@ -419,9 +418,9 @@ class CreateTrainNN(NNConfiguration):
         # in the first layer, you must specify the expected input data shape:
         # here, 20-dimensional vectors.
 
-        if optim is 'Adam':
+        if optim == 'Adam':
             optimizer = Adam(learning_rate=self.learning_rate, beta_1=0.9, beta_2=0.999, amsgrad=False)
-        elif optim is 'RMSProp':
+        elif optim == 'RMSProp':
             optimizer = RMSprop()
         else:
             optimizer = SGD(learning_rate=self.learning_rate, decay=1e-6, momentum=0.9, nesterov=True)
@@ -444,13 +443,13 @@ class CreateTrainNN(NNConfiguration):
             # else:
             #     optimizer = SGD(learning_rate=self.learning_rate, decay=1e-6, momentum=0.9, nesterov=True)
 
-            if loss_fn is 'mse':
+            if loss_fn == 'mse':
                 model.compile(loss=mean_squared_error, optimizer=optimizer, metrics=['accuracy', 'mae'])
-            elif loss_fn is 'mae':
+            elif loss_fn == 'mae':
                 model.compile(loss=mean_absolute_error, optimizer=optimizer, metrics=['accuracy', 'mse'])
-            elif loss_fn is 'mape':
+            elif loss_fn == 'mape':
                 model.compile(loss=mean_absolute_percentage_error, optimizer=optimizer, metrics=['accuracy', 'mse'])
-            elif loss_fn is 'mre':
+            elif loss_fn == 'mre':
                 model.compile(loss=mre_loss, optimizer=optimizer, metrics=['accuracy', 'mse'])
 
             model.fit(inputs_train, targets_train,
@@ -499,13 +498,13 @@ class CreateTrainNN(NNConfiguration):
                 model.add(BatchNormalization())
             model.add(outputlayer)
 
-            if loss_fn is 'mse':
+            if loss_fn == 'mse':
                 model.compile(loss=mean_squared_error, optimizer=optimizer, metrics=['accuracy', 'mae'])
-            elif loss_fn is 'mae':
+            elif loss_fn == 'mae':
                 model.compile(loss=mean_absolute_error, optimizer=optimizer, metrics=['accuracy', 'mse'])
-            elif loss_fn is 'mape':
+            elif loss_fn == 'mape':
                 model.compile(loss=mean_absolute_percentage_error, optimizer=optimizer, metrics=['accuracy', 'mse'])
-            elif loss_fn is 'mre':
+            elif loss_fn == 'mre':
                 model.compile(loss=mre_loss, optimizer=optimizer, metrics=['accuracy', 'mse'])
 
             # model.compile(loss='mean_absolute_error',
@@ -524,9 +523,7 @@ class CreateTrainNN(NNConfiguration):
         predicted_train = model.predict(inputs_train)
         print(predicted_train.shape)
 
-        validation = False
-
-        if self.predict_var is 'v':
+        if self.predict_var == 'v':
             v_f_name = self.eval_dir + "/models/model_vp_2_v_"
             v_f_name = v_f_name + str(self.dynamics)
             v_f_name = v_f_name + "_" + self.DNN_or_RBF
@@ -546,7 +543,7 @@ class CreateTrainNN(NNConfiguration):
             # model_yaml = model.to_yaml()
             # with open(weights_f_name, "w") as yaml_file:
             #     yaml_file.write(model_yaml)
-        elif self.predict_var is 'vp':
+        elif self.predict_var == 'vp':
             vp_f_name = self.eval_dir + "/models/model_v_2_vp_"
             vp_f_name = vp_f_name + str(self.dynamics)
             vp_f_name = vp_f_name + "_" + self.DNN_or_RBF

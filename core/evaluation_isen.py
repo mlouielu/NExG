@@ -274,17 +274,16 @@ class EvaluationInvSen(Evaluation):
                         print("Time taken: " + str(time.time() - start_time))
                     else:
                         start_time = time.time()
-                        self.reachDestInvNonBaseline(ref_traj=ref_traj, paths=paths, d_time_step=d_time_step,
+                        self.reachDestInvOriginal(ref_traj=ref_traj, paths=paths, d_time_step=d_time_step,
                                                      threshold=threshold,  model_v=trained_model, correction_steps=steps,
                                                      scaling_factor=s_factor, sims_bound=self.sims_bound,
                                                      dynamics=self.dynamics, true_inv_sen=true_inv_sen)
                         print("Time taken: " + str(time.time() - start_time))
 
-
     '''
     Reach Destination implementation with course correction.
     '''
-    def reachDestInvNonBaseline(self, ref_traj, paths, d_time_step, threshold, model_v, correction_steps, sims_bound,
+    def reachDestInvOriginal(self, ref_traj, paths, d_time_step, threshold, model_v, correction_steps, sims_bound,
                                 scaling_factor, true_inv_sen=None, rand_area=None, dynamics=None):
 
         n_paths = len(paths)
