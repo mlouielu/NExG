@@ -34,6 +34,8 @@ In the terminal, set the environment variable "NXG_PATH" to the NExG directory.
 export NXG_PATH=”/home/.../NExG”
 ```
 
+For locating the virtual environments: locate -b '\activate' | grep "/home"
+
 Finally, re-activate the virtual env and run the following command and copy the localhost link to open in the browser.
 
 ```
