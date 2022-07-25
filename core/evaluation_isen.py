@@ -231,16 +231,16 @@ class EvaluationInvSen(Evaluation):
                     d_time_step = t_idx
         return d_time_step
 
-    def reachDestInvSen(self, dests=None, d_time_steps=None, threshold=0.01, correction_steps=[1],
-                          scaling_factors=[0.01], i_state=None, true_inv_sen=None):
+    def reachDestInvSenGr(self, dests=None, d_time_steps=None, threshold=0.01, correction_steps=[1],
+                          scaling_factors=[0.01], i_state=None, true_inv_sen=None, model_fname=None, sims_f=None):
 
         ref_traj = self.data_object.generateTrajectories(r_states=i_state)[0]
         dest = dests[0]
-        self.data_object.setGradientRun(False)
+        self.data_object.setGradientRun(False)  # To avoid generating neighboring trajectories like in the training
 
         assert self.data_object is not None
 
-        trained_model = self.getModel()
+        trained_model = self.getModel(model_fname)
         if trained_model is None:
             return
 
@@ -248,15 +248,23 @@ class EvaluationInvSen(Evaluation):
             print(" Provide a valid time step ")
             return
         elif len(d_time_steps) == 1:
-            d_time_step = d_time_steps[0]
+            if isinstance(d_time_steps[0], int):
+                d_time_step = d_time_steps[0]
+            else:
+                d_time_step = int(d_time_steps[0]/self.data_object.getStepSize())
         else:
             self.time_steps.clear()
-            for t_idx in range(int(d_time_steps[0]/self.data_object.getStepSize()), int(d_time_steps[1]/self.data_object.getStepSize())):
-                self.time_steps.append(t_idx)
+            if isinstance(d_time_steps[0], int):
+                for t_idx in range(d_time_steps[0], d_time_steps[1]):
+                    self.time_steps.append(t_idx)
+            else:
+                for t_idx in range(int(d_time_steps[0]/self.data_object.getStepSize()), int(d_time_steps[1]/self.data_object.getStepSize())):
+                    self.time_steps.append(t_idx)
             print(self.time_steps)
             # print(self.time_steps)
             d_time_step = self.predict_falsifying_time_step(dest, ref_traj, False)
-        print(d_time_step)
+
+        print("*** time step **** " + str(d_time_step))
         paths_list = [[[ref_traj[d_time_step], dest]]]
 
         for paths in paths_list:
@@ -277,18 +285,21 @@ class EvaluationInvSen(Evaluation):
                         self.reachDestInvOriginal(ref_traj=ref_traj, paths=paths, d_time_step=d_time_step,
                                                      threshold=threshold,  model_v=trained_model, correction_steps=steps,
                                                      scaling_factor=s_factor, sims_bound=self.sims_bound,
-                                                     dynamics=self.dynamics, true_inv_sen=true_inv_sen)
+                                                     dynamics=self.dynamics, true_inv_sen=true_inv_sen, sims_f=sims_f)
                         print("Time taken: " + str(time.time() - start_time))
 
     '''
     Reach Destination implementation with course correction.
     '''
     def reachDestInvOriginal(self, ref_traj, paths, d_time_step, threshold, model_v, correction_steps, sims_bound,
-                                scaling_factor, true_inv_sen=None, rand_area=None, dynamics=None):
+                                scaling_factor, true_inv_sen=None, rand_area=None, dynamics=None, sims_f=None):
 
         n_paths = len(paths)
         x_val = ref_traj[0]
         dimensions = self.data_object.getDimensions()
+        if sims_f is not None:
+            sims_f.write(str(ref_traj))
+            sims_f.write('\n')
         trajectories = [ref_traj]
         rrt_dests = []
         print("Norm status: " + str(self.norm_status))
@@ -302,9 +313,9 @@ class EvaluationInvSen(Evaluation):
         for path_idx in range(n_paths):
             vp_vals = []
             v_vals = []
-            path = paths[path_idx]
-            xp_val = path[0]
-            dest = path[1]
+            rrt_path = paths[path_idx]
+            xp_val = rrt_path[0]
+            dest = rrt_path[1]
             rrt_dests.append(dest)
             print("***** path idx " + str(path_idx) + " s_factor " + str(scaling_factor) + " correction steps " +
                   str(correction_steps))
@@ -371,9 +382,12 @@ class EvaluationInvSen(Evaluation):
                     t_val = d_time_step
                     step += 1
 
-                sims_count = sims_count + 1
+                sims_count += 1
 
                 new_traj = self.data_object.generateTrajectories(r_states=[x_vals[len(x_vals) - 1]])[0]
+                if sims_f is not None:
+                    sims_f.write(str(new_traj))
+                    sims_f.write('\n')
                 x_val = new_traj[0]
                 xp_val = new_traj[d_time_step]
                 vp_val = dest - xp_val

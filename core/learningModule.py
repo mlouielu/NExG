@@ -50,13 +50,15 @@ class DataConfiguration(configuration):
     def setNormalizationStatus(self, norm_status):
         self.normalization = norm_status
 
-    def dumpDataConfiguration(self):
-        d_obj_f_name = self.eval_dir + '/dconfigs_inv/d_object_' + self.dynamics
-        print(d_obj_f_name)
-        if self.sensitivity == 'Fwd':
-            d_obj_f_name = self.eval_dir + '/dconfigs_fwd/d_object_' + self.dynamics
+    def dumpDataConfiguration(self, data_config_fname=None):
+        if data_config_fname is None:
+            d_obj_f_name = self.eval_dir + '/dconfigs_inv/d_object_' + self.dynamics
+            if self.sensitivity == 'Fwd':
+                d_obj_f_name = self.eval_dir + '/dconfigs_fwd/d_object_' + self.dynamics
 
-        d_obj_f_name += '.txt'
+            d_obj_f_name += '.txt'
+        else:
+            d_obj_f_name = data_config_fname
         if path.exists(d_obj_f_name):
             os.remove(d_obj_f_name)
         d_obj_f = open(d_obj_f_name, 'w')
@@ -101,12 +103,12 @@ class DataConfiguration(configuration):
                 v_norm = norm(v_val, 2)
                 # We normalize them later during trainTestNN method since we save actual_inv_sen values for validation
                 if self.validation is False:
-                    print( " v _ val ")
+                    # print( " v _ val ")
                     v_val = [val / v_norm for val in v_val]
                 x_val = ref_traj[x_idx]
                 x_dv_val = neighbor_traj[x_idx]
                 v_dv_val = ref_traj[x_idx] - neighbor_traj[x_idx]
-                # v_dv_val = [val / v_norm for val in v_dv_val]
+                v_dv_val = [val / v_norm for val in v_dv_val]
 
                 for jump in jumps:
                     for step in range(1, (steps - jump), jump):
@@ -148,7 +150,7 @@ class DataConfiguration(configuration):
         self.data.append(vpList.tolist())
         self.data.append(tList.tolist())
 
-    def createData(self, dim=-1, jumps=[1], validation=False):
+    def createData(self, dim=-1, jumps=[1], data_config_fname=None, validation=False):
         assert self.lowerBoundArray is not [] and self.upperBoundArray is not []
         assert dim < self.dimensions
 
@@ -156,7 +158,7 @@ class DataConfiguration(configuration):
             self.normalization = True
             if validation is False:
                 self.eval_dir = self.eval_dir + '/eval-gr'
-                self.dumpDataConfiguration()
+                self.dumpDataConfiguration(data_config_fname)
             return self.createData4GradRun(jumps)
 
         self.eval_dir = self.eval_dir + '/eval-non-gr'
@@ -339,8 +341,9 @@ class CreateTrainNN(NNConfiguration):
         self.setInput(np.asarray(input, dtype=np.float64))
         self.setOutput(np.asarray(output, dtype=np.float64))
 
-    def trainTestNN(self, optim='SGD', loss_fn='mae', act_fn='ReLU', layers=4, neurons=400, validation=False):
+    def trainTestNN(self, optim='SGD', loss_fn='mae', act_fn='ReLU', layers=4, neurons=400, validation=False, model_fname=None):
 
+        visualize = False
         print(self.input.shape)
         x_train, x_test, y_train, y_test = train_test_split(self.input, self.output, test_size=self.test_size,
                                                             shuffle=True, random_state=1)
@@ -425,7 +428,7 @@ class CreateTrainNN(NNConfiguration):
         else:
             optimizer = SGD(learning_rate=self.learning_rate, decay=1e-6, momentum=0.9, nesterov=True)
 
-        print("***** learning module ***" + str(self.input_size) + str(self.output_size))
+        print("***** learning module *** " + str(self.input_size) + str(self.output_size))
 
         if self.DNN_or_RBF == 'dnn':
             model.add(Dense(neurons, activation=act, input_dim=self.input_size))
@@ -536,6 +539,8 @@ class CreateTrainNN(NNConfiguration):
             #     v_f_name = v_f_name + "_norm"
             v_f_name = v_f_name + ".h5"
 
+            if model_fname is not None:
+                v_f_name = model_fname
             if validation is False:
                 if path.exists(v_f_name):
                     os.remove(v_f_name)
@@ -619,8 +624,9 @@ class CreateTrainNN(NNConfiguration):
         print("Mean Relative Error Train {}".format(mre_train))
         print("Mean Relative Error Test {}".format(mre_test))
 
-        self.visualizePerturbation(targets_train, predicted_train)
-        self.visualizePerturbation(targets_test, predicted_test)
+        if visualize:
+            self.visualizePerturbation(targets_train, predicted_train)
+            self.visualizePerturbation(targets_test, predicted_test)
 
         if validation is True:
             # self.visualizeDelta(targets_test, predicted_test, actual_inv_sens)

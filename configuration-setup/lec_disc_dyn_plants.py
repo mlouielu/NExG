@@ -18,7 +18,7 @@ class DnnController(object):
     def parseDNNYML(self, dynamics):
         # print("Parsing DNN YML file.")
         yaml_f = open(self.dnn_file, 'r')
-        yml_obj = yaml.full_load(yaml_f)
+        yml_obj = yaml.load(yaml_f)
         acts = yml_obj.get('activations')
         offsets = yml_obj.get('offsets')
         weights = yml_obj.get('weights')

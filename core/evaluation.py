@@ -34,12 +34,13 @@ class Evaluation(object):
 
     def setDataObject(self, d_obj_f_name=None):
 
-        if d_obj_f_name is None and self.sensitivity is 'Inv':
-            d_obj_f_name = self.eval_dir + '/dconfigs_inv/d_object_'+self.dynamics
-        elif d_obj_f_name is None and self.sensitivity is 'Fwd':
-            d_obj_f_name = self.eval_dir + '/dconfigs_fwd/d_object_'+self.dynamics
+        if d_obj_f_name is None:
+            if self.sensitivity is 'Inv':
+                d_obj_f_name = self.eval_dir + '/dconfigs_inv/d_object_'+self.dynamics
+            elif self.sensitivity is 'Fwd':
+                d_obj_f_name = self.eval_dir + '/dconfigs_fwd/d_object_'+self.dynamics
+            d_obj_f_name = d_obj_f_name + '.txt'
 
-        d_obj_f_name = d_obj_f_name + '.txt'
         print(d_obj_f_name)
 
         if path.exists(d_obj_f_name):
@@ -100,8 +101,16 @@ class Evaluation(object):
                 state[dim] = u_bound - 0.0000001
         return state
 
-    def getModel(self):
-        trained_model = self.network.getNetworkModel(self.eval_dir, self.sensitivity, self.dynamics, self.norm_status)
+    def getModel(self, model_f_name=None):
+        trained_model = None
+        if model_f_name is None:
+            trained_model = self.network.getNetworkModel(self.eval_dir, self.sensitivity, self.dynamics)
+        else:
+            if not path.exists(model_f_name):
+                print("Model file " + model_f_name + " does not exists.")
+            else:
+                print(model_f_name)
+                trained_model = load_model(model_f_name, compile=True, custom_objects={'RBFLayer': RBFLayer})
         return trained_model
 
     def evalModel(self, input=None, eval_var='v', model=None):
@@ -144,7 +153,7 @@ class Evaluation(object):
             self.neurons = neurons
             self.act_fn = act_fn
 
-        def getNetworkModel(self, eval_dir, sensitivity, dynamics, norm_status):
+        def getNetworkModel(self, eval_dir, sensitivity, dynamics):
             model_f_name = eval_dir
             if sensitivity is 'Fwd':
                 model_f_name = model_f_name + '/models/model_v_2_vp_'
@@ -154,8 +163,6 @@ class Evaluation(object):
             model_f_name = model_f_name + "_" + str(self.layers)
             model_f_name = model_f_name + "_" + str(self.neurons)
             model_f_name = model_f_name + "_" + self.act_fn
-            # if norm_status is True:
-            #     model_f_name = model_f_name + "_norm"
             model_f_name = model_f_name + '.h5'
             trained_model = None
             print(model_f_name)

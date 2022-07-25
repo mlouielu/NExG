@@ -128,7 +128,7 @@ class configuration(object):
                 points.append(point)
         return points
 
-    def generateTrajectories(self, scaling=0.01, samples=None, r_states=None, dump_i_states=False):
+    def generateTrajectories(self, scaling=0.01, samples=None, r_states=None, dump_i_states=False, sims_f=None):
         if samples is not None:
             self.samples = samples
         plant = None
@@ -242,7 +242,6 @@ class configuration(object):
 
         if r_states is None:
             r_states = generateRandomStates(self.samples, self.lowerBoundArray, self.upperBoundArray)
-
         if dump_i_states is True:
             r_states_fname = nxg_path + '/eval-emsoft/training-samples/' + self.dynamics + '_r_states.txt'
             if path.exists(r_states_fname):
@@ -290,6 +289,11 @@ class configuration(object):
             self.trajectories = trajectories
         else:
             self.trajectories = r_trajectories
+
+        if sims_f is not None:
+            for traj in self.trajectories:
+                sims_f.write(str(traj))
+                sims_f.write('\n')
         return self.trajectories
 
     def showTrajectories(self, trajectories=None, xindex=0, yindex=1, dimwise=False):
