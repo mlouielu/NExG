@@ -58,6 +58,7 @@ class EvaluationInvSen(Evaluation):
         self.always_spec = False
         self.f_simulations = None
         self.best_trajectory = None
+        self.adapt_time = False
 
     def getFSimulationsCount(self):
         return self.f_simulations_count
@@ -234,6 +235,7 @@ class EvaluationInvSen(Evaluation):
     def reachDestInvSenGr(self, dests=None, d_time_steps=None, threshold=0.01, correction_steps=[1],
                           scaling_factors=[0.01], i_state=None, true_inv_sen=None, model_fname=None, sims_f=None):
 
+        self.adapt_time = True
         ref_traj = self.data_object.generateTrajectories(r_states=i_state)[0]
         dest = dests[0]
         self.data_object.setGradientRun(False)  # To avoid generating neighboring trajectories like in the training
@@ -245,8 +247,9 @@ class EvaluationInvSen(Evaluation):
             return
 
         if d_time_steps is None:
-            print(" Provide a valid time step ")
-            return
+            for t_idx in range(0, self.data_object.steps):
+                self.time_steps.append(t_idx)
+            d_time_step = self.predict_falsifying_time_step(dest, ref_traj, False)
         elif len(d_time_steps) == 1:
             if isinstance(d_time_steps[0], int):
                 d_time_step = d_time_steps[0]
@@ -394,8 +397,6 @@ class EvaluationInvSen(Evaluation):
                 vp_norm = norm(vp_val, 2)
                 dist = vp_norm
                 # vp_val_temp = [val * scaling_factor for val in vp_val_normalized]
-                vp_vals.append(vp_val)
-                v_vals.append(v_val)
 
                 if true_inv_sen is not None and dest_traj_start_pt is not None:
                     true_inv_sen = dest_traj_start_pt - x_val
@@ -406,6 +407,24 @@ class EvaluationInvSen(Evaluation):
                     min_dist = dist
                     best_trajectory = new_traj
                     min_simulation = sims_count
+
+                if self.adapt_time is True:
+                    new_time_step = self.predict_falsifying_time_step(dest, new_traj, False)
+                    new_dist = norm(new_traj[new_time_step] - dest, 2)
+                    if new_dist < min_dist:
+                        print("Setting new time step to " + str(new_time_step))
+                        d_time_step = new_time_step
+                        best_trajectory = new_traj
+                        min_dist = new_dist
+                        xp_val = new_traj[d_time_step]
+                        vp_val = np.array(dest) - xp_val
+                        vp_norm = norm(vp_val, 2)
+                        dist = vp_norm
+                    else:
+                        print(" Couldn't find a better time step ")
+
+                vp_vals.append(vp_val)
+                v_vals.append(v_val)
 
                 # A falsifying trajectory found
                 if self.staliro_run and self.always_spec is False and self.check_for_usafe_contain_eventual(new_traj) != -1:
